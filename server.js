@@ -10,9 +10,11 @@ connectDB();
 
 const app = express();
 
-// Explicitly configure CORS for all Express API routes
+// THE FINAL FIX IS HERE: We are using your new, correct Vercel URL
+const FRONTEND_URL = 'https://chat-app-frontend-ca36f6hv-rohan-kamtams-projects.vercel.app';
+
 app.use(cors({
-  origin: 'https://chat-app-frontend-beta-ochre.vercel.app'
+  origin: FRONTEND_URL
 }));
 
 app.use(express.json());
@@ -26,10 +28,10 @@ app.get('/', (req, res) => {
 
 const server = http.createServer(app);
 
-// Explicitly configure CORS for Socket.IO
+// AND THE FINAL FIX IS HERE FOR SOCKET.IO
 const io = new Server(server, {
   cors: {
-    origin: "https://chat-app-frontend-beta-ochre.vercel.app",
+    origin: FRONTEND_URL,
     methods: ["GET", "POST"],
   },
 });
