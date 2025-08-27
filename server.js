@@ -10,11 +10,9 @@ connectDB();
 
 const app = express();
 
-// THE FINAL FIX IS HERE: We are using your new, correct Vercel URL
-const FRONTEND_URL = 'https://chat-app-frontend-ca36f6hv-rohan-kamtams-projects.vercel.app';
-
+// DEBUGGING STEP: Allow all origins for Express
 app.use(cors({
-  origin: FRONTEND_URL
+  origin: '*' 
 }));
 
 app.use(express.json());
@@ -28,35 +26,31 @@ app.get('/', (req, res) => {
 
 const server = http.createServer(app);
 
-// AND THE FINAL FIX IS HERE FOR SOCKET.IO
+// DEBUGGING STEP: Allow all origins for Socket.IO
 const io = new Server(server, {
   cors: {
-    origin: FRONTEND_URL,
+    origin: "*",
     methods: ["GET", "POST"],
   },
 });
 
 const usersInRooms = {};
 
+// ... (The rest of your Socket.IO logic remains exactly the same) ...
 io.on('connection', (socket) => {
   console.log(`A user connected: ${socket.id}`);
-
   socket.on('joinRoom', (data) => {
     const { roomName, user } = data;
     socket.join(roomName);
     console.log(`User ${user.name} (${socket.id}) joined room: ${roomName}`);
-    if (!usersInRooms[roomName]) {
-      usersInRooms[roomName] = [];
-    }
+    if (!usersInRooms[roomName]) { usersInRooms[roomName] = []; }
     usersInRooms[roomName].push({ id: socket.id, name: user.name });
     io.to(roomName).emit('updateUserList', usersInRooms[roomName]);
   });
-
   socket.on('chatMessage', (data) => {
     const { room, message, user } = data;
     io.to(room).emit('newMessage', { message, user, timestamp: new Date() });
   });
-
   socket.on('disconnect', () => {
     console.log(`User disconnected: ${socket.id}`);
     for (const roomName in usersInRooms) {
